@@ -44,3 +44,134 @@ h2 {
   color: #4caf50; /* Зеленый терминальный текст */
   margin: 10px 0;
 }
+
+.signal-header {
+  color: #ff9800 !important;
+  font-weight: bold;
+}
+
+.math-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #4caf50;
+  color: #4caf50;
+  font-family: inherit;
+  font-size: 1.1rem;
+  outline: none;
+  width: 50px;
+  margin-left: 10px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666 !important;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+.task-form {
+  display: inline-flex;
+  align-items: flex-start; /* Чтобы текст ошибки не смещал инпут по вертикали */
+  gap: 10px;
+}
+
+/* Немного подправим саму группу ввода, чтобы ошибка выводилась снизу */
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Выравниваем форму в строку терминала */
+.task-form {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Красный текст для ошибок Zod */
+.error-text {
+  color: #ff5252;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.input-error {
+  border-bottom: 2px solid #ff5252 !important;
+}
+
+/* Сообщения от базы данных (Успех/Провал) */
+.feedback-msg {
+  margin-top: 15px;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+
+.feedback-msg.success {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-color: #4caf50;
+  color: #81c784;
+}
+
+.feedback-msg.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  border-color: #f44336;
+  color: #e57373;
+}
+
+.auth-terminal {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.auth-form .input-group {
+  width: 100%;
+}
+
+.auth-form .math-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #81c784;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 20px;
+  font-family: monospace;
+}
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #ff5252;
+  color: #ff5252;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 82, 82, 0.1);
+}
