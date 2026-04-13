@@ -47,27 +47,33 @@ const playGeigerClick = () => {
     }
 
     // 3. Если браузер заблокировал звук (до первого клика на странице), пытаемся его разбудить
-    if (audioCtx.state === 'suspended') {
+    if (audioCtx.state === "suspended") {
       audioCtx.resume();
     }
 
-    // Если контекст все еще заблокирован (клика не было), прерываем функцию, 
+    // Если контекст все еще заблокирован (клика не было), прерываем функцию,
     // чтобы не плодить ошибки в консоли
-    if (audioCtx.state === 'suspended') return;
+    if (audioCtx.state === "suspended") return;
 
     // 4. Генерируем сам щелчок
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(100 + Math.random() * 200, audioCtx.currentTime); 
-    
+
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(
+      100 + Math.random() * 200,
+      audioCtx.currentTime,
+    );
+
     gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
-    
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.001,
+      audioCtx.currentTime + 0.02,
+    );
+
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.02);
   } catch {
@@ -85,7 +91,7 @@ const Typewriter = ({ text }) => {
     const timer = setInterval(() => {
       if (i < text.length) {
         setDisplayedText((prev) => prev + text.charAt(i));
-        
+
         // ЗВУК: Щелкаем на каждую 3-ю букву, чтобы звук не сливался в сплошной гул
         if (i % 3 === 0) {
           playGeigerClick();
@@ -105,6 +111,13 @@ const Typewriter = ({ text }) => {
       <span className="cursor"></span>
     </span>
   );
+};
+
+const DEGU_TEAM = {
+  geometry: { name: "Кокосик", img: "/coconut.png" },
+  word_problems: { name: "Уголек", img: "/coal.png" },
+  units: { name: "По", img: "/po.png" },
+  default: { name: "Инженер-дегу", img: "/coconut.png" },
 };
 
 function App() {
@@ -224,6 +237,10 @@ function App() {
   };
 
   const handleLogout = async () => await supabase.auth.signOut();
+  // Получаем текущего инженера на основе категории задачи
+  const currentDegu = task
+    ? DEGU_TEAM[task.category] || DEGU_TEAM.default
+    : DEGU_TEAM.default;
 
   if (!session) {
     return (
@@ -274,12 +291,19 @@ function App() {
         {/* АВАТАР ДЕГУ */}
         {/* АВАТАР ДЕГУ И ЕГО РЕПЛИКИ */}
         <div className="degu-avatar-container">
-          <img src="/degu.png" alt="Инженер Дегу" className="degu-avatar" />
+          <img
+            src={currentDegu.img}
+            alt={currentDegu.name}
+            className="degu-avatar"
+          />
 
           {/* ОБЛАЧКО ДИАЛОГА */}
-          <div className="speech-bubble">{deguPhrase}</div>
+          <div className="speech-bubble">
+            <strong>{currentDegu.name}:</strong>
+            <br />
+            {deguPhrase}
+          </div>
         </div>
-
         {loading ? (
           <p>Сканирование эфира...</p>
         ) : task ? (
