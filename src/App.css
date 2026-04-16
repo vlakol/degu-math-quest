@@ -211,17 +211,52 @@ h2 {
   font-size: 1rem;
 }
 
-.token-display {
+/* Контейнер для статистики */
+.stats-container {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+/* Общий стиль для плашек */
+.stat-badge {
+  background: rgba(15, 20, 25, 0.8);
+  border: 1px solid #333;
+  padding: 8px 15px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.2rem;
   font-weight: bold;
-  color: #ffd54f; /* Золотой цвет для жетонов */
-  background: rgba(0, 0, 0, 0.5);
-  padding: 5px 12px;
-  border-radius: 20px;
-  box-shadow: 0 0 10px rgba(255, 213, 79, 0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Огненный стрик */
+.streak-badge {
+  border-color: #e55039;
+  color: #f6b93b;
+  box-shadow: 0 0 10px rgba(229, 80, 57, 0.3);
+}
+
+.streak-badge .stat-icon {
+  filter: drop-shadow(0 0 5px #e55039);
+  animation: pulse-fire 2s infinite;
+}
+
+@keyframes pulse-fire {
+  0% { filter: drop-shadow(0 0 5px #e55039) brightness(1); }
+  50% { filter: drop-shadow(0 0 15px #f6b93b) brightness(1.2); }
+  100% { filter: drop-shadow(0 0 5px #e55039) brightness(1); }
+}
+
+/* Жетоны */
+.token-badge {
+  border-color: #f6b93b;
+  color: #e2e8f0;
+}
+
+.token-badge .stat-value {
+  color: #f6b93b;
 }
 
 .token-icon {

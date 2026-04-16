@@ -17,7 +17,7 @@ const getRandomPhrase = (phrasesArray) => {
 };
 
 const fetchPhrases = async () => {
-  const { data, error } = await supabase.from("degu_phrases").select("*");
+  const { data, error } = await supabase.from('degu_phrases').select('*');
   if (error) throw error;
   // Группируем для удобства: { success: [...], error: [...], neutral: [...] }
   return data.reduce((acc, row) => {
@@ -118,20 +118,17 @@ function App() {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
-
-// ВМЕСТО: const [tokens, setTokens] = useState(0);
-  const [stats, setStats] = useState({ tokens: 0, streak: 0 }); 
-
+  const [tokens, setTokens] = useState(0);
 
   // Новое состояние для контроля анимации ошибки
   const [isShaking, setIsShaking] = useState(false);
 
   // НОВОЕ СОСТОЯНИЕ для фраз дегу
 
-  // SWR загрузит фразы ОДИН раз, закэширует их в памяти браузера
+// SWR загрузит фразы ОДИН раз, закэширует их в памяти браузера
   // и будет отдавать мгновенно при любых рендерах.
-  const { data: phrasesDB } = useSWR("degu-phrases", fetchPhrases, {
-    revalidateOnFocus: false, // Не дергать базу, когда пользователь переключает вкладки
+  const { data: phrasesDB } = useSWR('degu-phrases', fetchPhrases, {
+    revalidateOnFocus: false // Не дергать базу, когда пользователь переключает вкладки
   });
 
   // Задаем начальную фразу, пока данные грузятся
@@ -149,16 +146,12 @@ function App() {
     resolver: zodResolver(mathTaskSchema),
   });
 
-
-const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async () => {
     if (!session) return;
-    
-    // Используем новую функцию, которая возвращает и жетоны, и стрик
-    const { data: profileStats, error } = await supabase.rpc("get_profile_stats");
-    if (!error && profileStats) {
-      setStats(profileStats);
-    }
+    const { data: balance, error } = await supabase.rpc("get_my_balance");
+    if (!error) setTokens(balance);
 
+    // НОВОЕ: Запрашиваем прогресс миссии
     const { data: progData } = await supabase.rpc("get_mission_progress");
     if (progData) setProgress(progData);
   }, [session]);
@@ -168,9 +161,9 @@ const fetchProfile = useCallback(async () => {
     setFeedback(null);
     reset();
 
-    if (phrasesDB?.neutral) {
-      setDeguPhrase(getRandomPhrase(phrasesDB.neutral));
-    }
+if (phrasesDB?.neutral) {
+     setDeguPhrase(getRandomPhrase(phrasesDB.neutral));
+  }
 
     const { data, error } = await supabase.rpc("get_next_task");
     if (!error) setTask(data);
@@ -214,8 +207,8 @@ const fetchProfile = useCallback(async () => {
 
     if (isCorrect) {
       if (phrasesDB?.success) {
-        setDeguPhrase(getRandomPhrase(phrasesDB.success));
-      }
+     setDeguPhrase(getRandomPhrase(phrasesDB.success));
+  }
 
       confetti({
         particleCount: 150,
@@ -231,9 +224,10 @@ const fetchProfile = useCallback(async () => {
       reset();
       await fetchProfile();
     } else {
+      
       if (phrasesDB?.error) {
-        setDeguPhrase(getRandomPhrase(phrasesDB.error));
-      }
+     setDeguPhrase(getRandomPhrase(phrasesDB.error));
+  }
 
       setIsShaking(true);
       setFeedback({
@@ -268,20 +262,11 @@ const fetchProfile = useCallback(async () => {
         </button>
       </div>
 
-<div className="user-info-bar">
+      <div className="user-info-bar">
         <h2>Дежурная смена: инженеры-дегу ({session.user.email})</h2>
-        <div className="stats-container">
-          {/* Стрики (Дни на вахте) */}
-          <div className="stat-badge streak-badge">
-            <span className="stat-icon">🔥</span>
-            <span className="stat-value">{stats.streak} дн. на вахте</span>
-          </div>
-          
-          {/* Жетоны */}
-          <div className="stat-badge token-badge">
-            <span className="stat-icon">🪙</span>
-            <span className="stat-value">{stats.tokens} жетонов</span>
-          </div>
+        <div className="token-display">
+          <span className="token-icon">🪙</span>
+          <span className="token-count">{tokens} жетонов</span>
         </div>
       </div>
 
@@ -305,91 +290,73 @@ const fetchProfile = useCallback(async () => {
       </div>
 
       <div className="terminal">
- {/* --- ВОЗВРАЩАЕМ АВАТАР НА МЕСТО --- */}
+        {/* АВАТАР ДЕГУ */}
+        {/* АВАТАР ДЕГУ И ЕГО РЕПЛИКИ */}
         <div className="degu-avatar-container">
-          <img src={currentDegu.img} alt={currentDegu.name} className="degu-avatar" />
+          <img
+            src={currentDegu.img}
+            alt={currentDegu.name}
+            className="degu-avatar"
+          />
+
+          {/* ОБЛАЧКО ДИАЛОГА */}
           <div className="speech-bubble">
-            <strong>{currentDegu.name}:</strong><br/>
+            <strong>{currentDegu.name}:</strong>
+            <br />
             {deguPhrase}
           </div>
         </div>
- {/* ОБОРАЧИВАЕМ ВСЕ СОСТОЯНИЯ В ANIMATE PRESENCE */}
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="loading-state"
-            >
-              <p>Сканирование эфира...</p>
-            </motion.div>
-          ) : task ? (
-            <motion.div
-              key={task.id} /* Уникальный ключ заставляет React анимировать смену задач */
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 1.3 }}
-              style={{ width: "100%" }}
-            >
-              <p className="signal-header">
-                {">>>"} ПЕРЕХВАЧЕН СИГНАЛ: {task.title}
-              </p>
+        {loading ? (
+          <p>Сканирование эфира...</p>
+        ) : task ? (
+          <>
+            <p className="signal-header">
+              {">>>"} ПЕРЕХВАЧЕН СИГНАЛ: {task.title}
+            </p>
 
-              {/* ИСПОЛЬЗУЕМ ЭФФЕКТ ПЕЧАТНОЙ МАШИНКИ */}
-              <p className="task-content">
-                <Typewriter text={task.content} />
-              </p>
+            {/* ИСПОЛЬЗУЕМ ЭФФЕКТ ПЕЧАТНОЙ МАШИНКИ */}
+            <p className="task-content">
+              <Typewriter text={task.content} />
+            </p>
 
-              {feedback && (
-                <p className={`feedback-msg ${feedback.type}`}>
-                  {feedback.text}
-                </p>
-              )}
+            {feedback && (
+              <p className={`feedback-msg ${feedback.type}`}>{feedback.text}</p>
+            )}
 
-              {feedback?.type === "success" ? (
-                <button
-                  onClick={handleNextTask}
-                  className="submit-btn next-task-btn"
-                >
-                  📡 Искать следующий сигнал
-                </button>
-              ) : (
-                /* ДОБАВЛЯЕМ КЛАСС ТРЯСКИ ЕСЛИ isShaking = true */
-                <div className={`input-area ${isShaking ? "shake" : ""}`}>
-                  <span>КОД: </span>
-                  <form onSubmit={handleSubmit(onSubmit)} className="task-form">
-                    <ValidatedInput
-                      name="answer"
-                      placeholder="..."
-                      register={register}
-                      error={errors.answer}
-                    />
-                    <button type="submit" className="submit-btn">
-                      Отправить код
-                    </button>
-                  </form>
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="cleared"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="all-cleared"
-            >
-              <h3>🎉 Эфир чист!</h3>
-              <p>
-                Ты расшифровал все доступные сигналы. Инженеры-дегу могут
-                отдохнуть и погрызть орешки.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {feedback?.type === "success" ? (
+              <button
+                onClick={handleNextTask}
+                className="submit-btn next-task-btn"
+              >
+                📡 Искать следующий сигнал
+              </button>
+            ) : (
+              /* ДОБАВЛЯЕМ КЛАСС ТРЯСКИ ЕСЛИ isShaking = true */
+              <div className={`input-area ${isShaking ? "shake" : ""}`}>
+                <span>КОД: </span>
+                <form onSubmit={handleSubmit(onSubmit)} className="task-form">
+                  <ValidatedInput
+                    name="answer"
+                    placeholder="..."
+                    register={register}
+                    error={errors.answer}
+                  />
+                  <button type="submit" className="submit-btn">
+                    Отправить код
+                  </button>
+                </form>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="all-cleared">
+            <h3>🎉 Эфир чист!</h3>
+            <p>
+              Ты расшифровал все доступные сигналы. Инженеры-дегу могут
+              отдохнуть и погрызть орешки.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
