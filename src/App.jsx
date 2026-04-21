@@ -79,22 +79,34 @@ const Typewriter = ({ text }) => {
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    setDisplayedText(""); // Сбрасываем текст при смене задачи
-    let i = 0;
+    // 1. Сбрасываем текст при получении новой задачи
+    setDisplayedText(""); 
+    
+    // 2. Создаем локальные переменные для жесткого контроля
+    let currentIndex = 0;
+    let currentString = "";
+    
     const timer = setInterval(() => {
-      if (i < text.length) {
-        setDisplayedText((prev) => prev + text.charAt(i));
-
-        // ЗВУК: Щелкаем на каждую 3-ю букву, чтобы звук не сливался в сплошной гул
-        if (i % 3 === 0) {
-          playGeigerClick();
-        }
-        i++;
-      } else {
+      // Если текст закончился - останавливаем таймер
+      if (currentIndex >= text.length) {
         clearInterval(timer);
+        return;
       }
+
+      // Собираем строку локально, избегая асинхронных багов React
+      currentString += text.charAt(currentIndex);
+      setDisplayedText(currentString);
+
+      // ЗВУК: Щелкаем на каждую 3-ю букву
+      if (currentIndex % 3 === 0) {
+        // Убедись, что playGeigerClick объявлена выше или импортирована
+        playGeigerClick(); 
+      }
+
+      currentIndex++;
     }, 40); // Скорость печати (в миллисекундах)
 
+    // 3. Жесткая очистка таймера при размонтировании или смене текста
     return () => clearInterval(timer);
   }, [text]);
 
@@ -110,7 +122,7 @@ const DEGU_TEAM = {
   geometry: { name: "Кокосик", img: "/coconut.png" },
   word_problems: { name: "Уголек", img: "/coal.png" },
   units: { name: "По", img: "/po.png" },
-  default: { name: "Инженер-дегу", img: "/coconut.png" },
+  default: { name: "Инженер-Беззубик", img: "/toothless.jpg" },
 };
 
 function App() {
@@ -119,9 +131,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
 
-// ВМЕСТО: const [tokens, setTokens] = useState(0);
-  const [stats, setStats] = useState({ tokens: 0, streak: 0 }); 
-
+  // ВМЕСТО: const [tokens, setTokens] = useState(0);
+  const [stats, setStats] = useState({ tokens: 0, streak: 0 });
 
   // Новое состояние для контроля анимации ошибки
   const [isShaking, setIsShaking] = useState(false);
@@ -149,12 +160,12 @@ function App() {
     resolver: zodResolver(mathTaskSchema),
   });
 
-
-const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async () => {
     if (!session) return;
-    
+
     // Используем новую функцию, которая возвращает и жетоны, и стрик
-    const { data: profileStats, error } = await supabase.rpc("get_profile_stats");
+    const { data: profileStats, error } =
+      await supabase.rpc("get_profile_stats");
     if (!error && profileStats) {
       setStats(profileStats);
     }
@@ -268,7 +279,7 @@ const fetchProfile = useCallback(async () => {
         </button>
       </div>
 
-<div className="user-info-bar">
+      <div className="user-info-bar">
         <h2>Дежурная смена: инженеры-дегу ({session.user.email})</h2>
         <div className="stats-container">
           {/* Стрики (Дни на вахте) */}
@@ -276,7 +287,7 @@ const fetchProfile = useCallback(async () => {
             <span className="stat-icon">🔥</span>
             <span className="stat-value">{stats.streak} дн. на вахте</span>
           </div>
-          
+
           {/* Жетоны */}
           <div className="stat-badge token-badge">
             <span className="stat-icon">🪙</span>
@@ -286,8 +297,8 @@ const fetchProfile = useCallback(async () => {
       </div>
 
       {/* СЧЕТЧИК ГЕЙГЕРА (ПРОГРЕСС МИССИИ) */}
-      <div className="geiger-container">
-        <div className="geiger-label">УРОВЕНЬ ДЕШИФРОВКИ (РАД/Ч)</div>
+{/*}      <div className="geiger-container">
+        <div className="geiger-label">План на смену (РАД/Ч)</div>
         <div className="geiger-screen">
           <div
             className="geiger-bar"
@@ -303,17 +314,45 @@ const fetchProfile = useCallback(async () => {
           </div>
         </div>
       </div>
+*/}
 
+
+{/* Прогресс-бар (План на смену) */}
+      {progress && (
+        <div className="geiger-container">
+          <div className="geiger-label">РАДИАЦИОННЫЙ ФОН ЭФИРА</div>
+          <div className="geiger-screen">
+            {/* Оставляем geiger-bar для высоты, и накидываем quota-met-bar для золотого цвета */}
+            <div
+              className={`geiger-bar ${progress.solved >= progress.total ? 'quota-met-bar' : ''}`}
+              style={{ width: `${progress.percentage}%` }}
+            ></div>
+            
+            {/* Оставляем geiger-text для центрирования, и накидываем quota-met-text для свечения */}
+            <div className={`geiger-text ${progress.solved >= progress.total ? 'quota-met-text' : ''}`}>
+              {progress.solved >= progress.total 
+                ? `План перевыполнен! (${progress.solved}/${progress.total}) Эфир чист 🐉` 
+                : `План на смену: ${progress.solved} / ${progress.total} сигналов`
+              }
+            </div>
+          </div>
+        </div>
+      )}
       <div className="terminal">
- {/* --- ВОЗВРАЩАЕМ АВАТАР НА МЕСТО --- */}
+        {/* --- ВОЗВРАЩАЕМ АВАТАР НА МЕСТО --- */}
         <div className="degu-avatar-container">
-          <img src={currentDegu.img} alt={currentDegu.name} className="degu-avatar" />
+          <img
+            src={currentDegu.img}
+            alt={currentDegu.name}
+            className="degu-avatar"
+          />
           <div className="speech-bubble">
-            <strong>{currentDegu.name}:</strong><br/>
+            <strong>{currentDegu.name}:</strong>
+            <br />
             {deguPhrase}
           </div>
         </div>
- {/* ОБОРАЧИВАЕМ ВСЕ СОСТОЯНИЯ В ANIMATE PRESENCE */}
+        {/* ОБОРАЧИВАЕМ ВСЕ СОСТОЯНИЯ В ANIMATE PRESENCE */}
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div
@@ -327,7 +366,9 @@ const fetchProfile = useCallback(async () => {
             </motion.div>
           ) : task ? (
             <motion.div
-              key={task.id} /* Уникальный ключ заставляет React анимировать смену задач */
+              key={
+                task.id
+              } /* Уникальный ключ заставляет React анимировать смену задач */
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -20 }}

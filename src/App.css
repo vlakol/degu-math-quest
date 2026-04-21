@@ -493,3 +493,41 @@ h2 {
   );
   box-shadow: 0 0 15px rgba(229, 80, 57, 0.5);
 }
+/* --- СТИЛИ ДЛЯ ВЫПОЛНЕННОЙ НОРМЫ --- */
+
+/* Золотое свечение текста */
+.quota-met-text {
+  color: #f6b93b;
+  text-shadow: 0 0 10px rgba(246, 185, 59, 0.8), 0 0 20px rgba(246, 185, 59, 0.4);
+  font-weight: bold;
+  animation: pulse-text-glow 2s infinite alternate;
+}
+
+/* Переливающийся поток плазмы */
+.quota-met-bar {
+  /* Градиент из оттенков золотого, янтарного и белого */
+  background: linear-gradient(
+    90deg, 
+    #f6b93b, 
+    #fa983a, 
+    #fcf6bd, 
+    #fa983a, 
+    #f6b93b
+  );
+  background-size: 200% 100%;
+  box-shadow: 0 0 15px rgba(246, 185, 59, 0.6), inset 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: flow-plasma 2s linear infinite;
+  border-radius: 4px;
+}
+
+/* Анимация пульсации текста */
+@keyframes pulse-text-glow {
+  0% { text-shadow: 0 0 10px rgba(246, 185, 59, 0.8); }
+  100% { text-shadow: 0 0 20px rgba(246, 185, 59, 1), 0 0 30px rgba(246, 185, 59, 0.6); }
+}
+
+/* Анимация перетекания градиента */
+@keyframes flow-plasma {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
