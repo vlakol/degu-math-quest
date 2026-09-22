@@ -75,10 +75,39 @@ h2 {
   border-bottom: 2px solid #4caf50;
   color: #4caf50;
   font-family: inherit;
-  font-size: 1.1rem;
+  font-size: 1.5rem; /* Make it bigger for kids */
   outline: none;
-  width: 50px;
+  width: 80px; /* Wider to accommodate bigger text */
   margin-left: 10px;
+  text-align: center;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth transition */
+}
+
+/* The Plasma Blast Focus Effect */
+.math-input:focus {
+  border-bottom: 2px solid #aa3bff; /* Shift to purple plasma */
+  color: #aa3bff;
+  background: rgba(170, 59, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(170, 59, 255, 0.4), inset 0 0 8px rgba(170, 59, 255, 0.2);
+  transform: translateY(-2px); /* Slight bump up */
+}
+
+/* Make the basic submit button look like a control panel button */
+.submit-btn {
+  background: linear-gradient(45deg, #f6b93b, #e55039); /* Amber to Red */
+  border: none;
+  color: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(229, 80, 57, 0.4);
+  /* Note: Hover/Tap scale animations will be handled by Framer Motion in JS */
 }
 
 .hint {
@@ -265,23 +294,80 @@ h2 {
 
 .next-task-btn {
   background-color: #81c784;
-  color: #1e1e1e;
-  font-size: 1.1rem;
-  padding: 10px 20px;
-  margin-top: 15px;
+  background: linear-gradient(45deg, #4caf50, #81c784);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
   width: 100%;
+  margin-top: 15px;
 }
 
 .next-task-btn:hover {
   background-color: #66bb6a;
 }
 
+/* 1. The Container for our floating energy particles */
+.particles-container {
+  position: fixed; /* Covers the whole screen */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* Crucial: lets the child click THROUGH the particles */
+  z-index: 0; /* Keeps it behind the main terminal */
+}
+
+/* 2. The Base Style for a single particle */
+.alpha-particle {
+  position: absolute;
+  background: #00d4ff; /* Alpha Toothless Neon Blue */
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00d4ff, 0 0 20px rgba(0, 212, 255, 0.8), 0 0 30px #8a2be2;
+}
+
+/* The massive reward block */
+/* 3. Upgrade the Victory Box to "Breathe" Alpha Energy */
 .all-cleared {
   text-align: center;
-  color: #81c784;
-  padding: 40px;
-  border: 2px dashed #81c784;
-  border-radius: 8px;
+  padding: 60px 40px;
+  border: 2px solid #00d4ff; /* Changed to Cyan */
+  background: rgba(10, 0, 30, 0.6); /* Deep violet background */
+  border-radius: 12px;
+  color: #e2e8f0;
+  /* Add the breathing animation */
+  animation: alpha-breathe 3s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2; /* Keep above particles */
+}
+
+@keyframes alpha-breathe {
+  0% { 
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.3), inset 0 0 15px rgba(0, 212, 255, 0.2); 
+  }
+  100% { 
+    box-shadow: 0 0 60px rgba(0, 212, 255, 0.8), inset 0 0 30px rgba(0, 212, 255, 0.6); 
+  }
+}
+
+.all-cleared h3 {
+  font-size: 2.5rem;
+  color: #fff;
+  text-shadow: 0 0 15px #00d4ff, 0 0 30px #00d4ff;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.all-cleared-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  display: inline-block;
+  animation: float-icon 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(129, 199, 132, 0.8));
+}
+
+@keyframes float-icon {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
 }
 
 /* --- ВИЗУАЛЬНЫЕ ЭФФЕКТЫ --- */
@@ -346,16 +432,49 @@ h2 {
   border-color: transparent #1e1e1e transparent transparent;
 }
 
-/* Анимация тряски при ошибке */
-.shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+/* Apply this class when an error occurs */
+.radiation-glitch {
+  /* Run the animation for 0.6 seconds */
+  animation: radiation-flash 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+/* 
+  The Glitch Engine: 
+  1. transform: rapidly shifting position
+  2. filter: drastically shifting colors (radiation glow)
+  3. text-shadow: splitting the RGB channels for chromatic aberration
+*/
+@keyframes radiation-flash {
+  0% {
+    transform: translate(0);
+    filter: hue-rotate(0deg) brightness(1);
+    text-shadow: none;
+  }
+  20% {
+    transform: translate(-4px, 2px);
+    filter: hue-rotate(-90deg) brightness(1.5);
+    text-shadow: 4px 0 0 red, -4px 0 0 blue;
+  }
+  40% {
+    transform: translate(-4px, -2px);
+    filter: hue-rotate(90deg) brightness(2);
+    text-shadow: -4px 0 0 red, 4px 0 0 blue;
+  }
+  60% {
+    transform: translate(4px, 2px);
+    filter: hue-rotate(-180deg) contrast(2);
+    text-shadow: 4px 0 0 lime, -4px 0 0 magenta;
+  }
+  80% {
+    transform: translate(4px, -2px);
+    filter: hue-rotate(180deg) brightness(1.5);
+    text-shadow: -4px 0 0 red, 4px 0 0 blue;
+  }
+  100% {
+    transform: translate(0);
+    filter: hue-rotate(0deg) brightness(1);
+    text-shadow: none;
+  }
 }
 
 /* Эффект курсора для печатной машинки */
@@ -435,12 +554,6 @@ h2 {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  /* Глубокий сине-черный градиент */
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  /* Раскомментируй строку ниже, когда добавишь картинку в папку public */
-  background-image: linear-gradient(rgba(15, 32, 39, 0.85), rgba(44, 83, 100, 0.85)), url('/dragon-bg.jpg'); 
-  background-size: cover;
-  background-position: center;
   padding: 20px;
   box-sizing: border-box;
 }

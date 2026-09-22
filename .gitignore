@@ -7,9 +7,24 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build outputs
 dist
 dist-ssr
+.vercel
+.next
+.turbo
+
+# Environments & Secrets (Защита ключей Supabase)
+.env
+.env.local
+.env.development
+.env.production
+.env.development.local
+.env.production.local
+*.env*
 *.local
 
 # Editor directories and files

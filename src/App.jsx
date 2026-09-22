@@ -6,12 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { mathTaskSchema } from "./schemas";
 import { ValidatedInput } from "./components/ValidatedInput";
 import { Auth } from "./components/Auth";
-import confetti from "canvas-confetti"; // Импортируем салют
+import confetti from "canvas-confetti";
 import useSWR from "swr";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 
-// НОВЫЙ ХЕЛПЕР (ЖИВЕТ ВНЕ КОМПОНЕНТА APP)
 const getRandomPhrase = (phrasesArray) => {
   return phrasesArray[Math.floor(Math.random() * phrasesArray.length)];
 };
@@ -19,7 +17,6 @@ const getRandomPhrase = (phrasesArray) => {
 const fetchPhrases = async () => {
   const { data, error } = await supabase.from("degu_phrases").select("*");
   if (error) throw error;
-  // Группируем для удобства: { success: [...], error: [...], neutral: [...] }
   return data.reduce((acc, row) => {
     if (!acc[row.category]) acc[row.category] = [];
     acc[row.category].push(row.phrase_text);
@@ -27,28 +24,19 @@ const fetchPhrases = async () => {
   }, {});
 };
 
-// --- ЗВУКОВОЙ ДВИЖОК (Счетчик Гейгера / Печать) ---
-
-// 1. Глобальная переменная (Singleton) — создаем только один раз!
+// --- AUDIO ENGINE ---
 let audioCtx = null;
 
 const playGeigerClick = () => {
   try {
-    // 2. Инициализируем контекст лениво, только при первом вызове
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-
-    // 3. Если браузер заблокировал звук (до первого клика на странице), пытаемся его разбудить
     if (audioCtx.state === "suspended") {
       audioCtx.resume();
     }
-
-    // Если контекст все еще заблокирован (клика не было), прерываем функцию,
-    // чтобы не плодить ошибки в консоли
     if (audioCtx.state === "suspended") return;
 
-    // 4. Генерируем сам щелчок
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
@@ -70,43 +58,33 @@ const playGeigerClick = () => {
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.02);
   } catch {
-    // Тихо перехватываем любые другие сбои аудио
+    // Silent catch
   }
 };
 
-// Компонент эффекта "Печатной машинки"
+// --- COMPONENTS ---
 const Typewriter = ({ text }) => {
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
-    // 1. Сбрасываем текст при получении новой задачи
     setDisplayedText(""); 
-    
-    // 2. Создаем локальные переменные для жесткого контроля
     let currentIndex = 0;
     let currentString = "";
     
     const timer = setInterval(() => {
-      // Если текст закончился - останавливаем таймер
       if (currentIndex >= text.length) {
         clearInterval(timer);
         return;
       }
-
-      // Собираем строку локально, избегая асинхронных багов React
       currentString += text.charAt(currentIndex);
       setDisplayedText(currentString);
 
-      // ЗВУК: Щелкаем на каждую 3-ю букву
       if (currentIndex % 3 === 0) {
-        // Убедись, что playGeigerClick объявлена выше или импортирована
         playGeigerClick(); 
       }
-
       currentIndex++;
-    }, 40); // Скорость печати (в миллисекундах)
+    }, 40);
 
-    // 3. Жесткая очистка таймера при размонтировании или смене текста
     return () => clearInterval(timer);
   }, [text]);
 
@@ -118,6 +96,17 @@ const Typewriter = ({ text }) => {
   );
 };
 
+const AnimatedNumber = ({ value }) => {
+  const spring = useSpring(value, { mass: 1, stiffness: 75, damping: 15 });
+  const display = useTransform(spring, (current) => Math.round(current));
+
+  useEffect(() => {
+    spring.set(value);
+  }, [value, spring]);
+
+  return <motion.span>{display}</motion.span>;
+};
+
 const DEGU_TEAM = {
   geometry: { name: "Кокосик", img: "/coconut.png" },
   word_problems: { name: "Уголек", img: "/coal.png" },
@@ -125,51 +114,72 @@ const DEGU_TEAM = {
   default: { name: "Инженер-Беззубик", img: "/toothless.jpg" },
 };
 
+// --- ALPHA ENERGY PARTICLES COMPONENT ---
+const AlphaParticles = () => {
+  // Create an array of 20 empty items to map over
+  const particles = Array.from({ length: 20 });
+
+  return (
+    <div className="particles-container">
+      {particles.map((_, i) => {
+        // Randomize starting positions, sizes, and animation speeds
+        const randomX = Math.random() * 100; // Random horizontal start (0 to 100vw)
+        const randomDelay = Math.random() * 5; // Start at different times
+        const randomDuration = 5 + Math.random() * 5; // Float up over 5 to 10 seconds
+        const size = Math.random() * 6 + 4; // Size between 4px and 10px
+
+        return (
+          <motion.div
+            key={i}
+            className="alpha-particle"
+            // Start below the screen, invisible
+            initial={{ y: "100vh", x: `${randomX}vw`, opacity: 0 }}
+            // Float up past the top of the screen, fading in and out
+            animate={{ 
+              y: "-10vh", 
+              x: [`${randomX}vw`, `${randomX + (Math.random() * 10 - 5)}vw`, `${randomX}vw`], // Slight horizontal drifting
+              opacity: [0, 1, 0] 
+            }}
+            transition={{
+              duration: randomDuration,
+              repeat: Infinity, // Loop forever!
+              delay: randomDelay,
+              ease: "linear"
+            }}
+            style={{ width: size, height: size }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+
+
 function App() {
   const [session, setSession] = useState(null);
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
-
-  // ВМЕСТО: const [tokens, setTokens] = useState(0);
   const [stats, setStats] = useState({ tokens: 0, streak: 0 });
-
-  // Новое состояние для контроля анимации ошибки
-  const [isShaking, setIsShaking] = useState(false);
-
-  // НОВОЕ СОСТОЯНИЕ для фраз дегу
-
-  // SWR загрузит фразы ОДИН раз, закэширует их в памяти браузера
-  // и будет отдавать мгновенно при любых рендерах.
+  const [isGlitching, setIsGlitching] = useState(false);
+  const [progress, setProgress] = useState({ solved: 0, total: 0 });
+  
   const { data: phrasesDB } = useSWR("degu-phrases", fetchPhrases, {
-    revalidateOnFocus: false, // Не дергать базу, когда пользователь переключает вкладки
+    revalidateOnFocus: false,
   });
-
-  // Задаем начальную фразу, пока данные грузятся
   const [deguPhrase, setDeguPhrase] = useState("Настраиваю антенну...");
 
-  // НОВОЕ СОСТОЯНИЕ для прогресс бара
-  const [progress, setProgress] = useState({ solved: 0, total: 0 });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(mathTaskSchema),
   });
 
   const fetchProfile = useCallback(async () => {
     if (!session) return;
-
-    // Используем новую функцию, которая возвращает и жетоны, и стрик
-    const { data: profileStats, error } =
-      await supabase.rpc("get_profile_stats");
+    const { data: profileStats, error } = await supabase.rpc("get_profile_stats");
     if (!error && profileStats) {
       setStats(profileStats);
     }
-
     const { data: progData } = await supabase.rpc("get_mission_progress");
     if (progData) setProgress(progData);
   }, [session]);
@@ -185,17 +195,12 @@ function App() {
 
     const { data, error } = await supabase.rpc("get_next_task");
     if (!error) setTask(data);
-
     setLoading(false);
   };
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => setSession(session));
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) =>
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) =>
       setSession(session),
     );
     return () => subscription.unsubscribe();
@@ -235,32 +240,28 @@ function App() {
         colors: ["#81c784", "#ffd54f", "#ffffff"],
       });
 
-      setFeedback({
-        type: "success",
-        text: "✅ Сигнал расшифрован! Код верный.",
-      });
+      setFeedback({ type: "success", text: "✅ Сигнал расшифрован! Код верный." });
       reset();
       await fetchProfile();
     } else {
       if (phrasesDB?.error) {
         setDeguPhrase(getRandomPhrase(phrasesDB.error));
       }
-
-      setIsShaking(true);
-      setFeedback({
-        type: "error",
-        text: "❌ Код неверный. Проверь вычисления!",
-      });
-      setTimeout(() => setIsShaking(false), 500);
+      setIsGlitching(true);
+      setFeedback({ type: "error", text: "❌ Код неверный. Обнаружена радиационная помеха!" });
+      setTimeout(() => setIsGlitching(false), 600); 
     }
   };
 
   const handleLogout = async () => await supabase.auth.signOut();
-  // Получаем текущего инженера на основе категории задачи
-  const currentDegu = task
-    ? DEGU_TEAM[task.category] || DEGU_TEAM.default
-    : DEGU_TEAM.default;
 
+  const currentDegu = task ? DEGU_TEAM[task.category] || DEGU_TEAM.default : DEGU_TEAM.default;
+
+  // HARDCODED for testing the reactor sequence. Change to actual logic later:
+  const isQuotaMet = progress.total > 0 && progress.solved >= progress.total;
+  //const isQuotaMet = true; 
+
+  // --- BUG 1 FIXED: Restored the Auth component for logged-out users ---
   if (!session) {
     return (
       <div className="control-room">
@@ -270,9 +271,29 @@ function App() {
     );
   }
 
+  // --- BUG 2 FIXED: Main wrapper is now a <motion.div> ---
   return (
-    <div className="control-room">
-      <div className="header-bar">
+    <motion.div 
+      className="control-room"
+      animate={{
+        background: isQuotaMet 
+          // The Victory State: Deep violet and bright cyan (Alpha Toothless)
+          ? "linear-gradient(rgba(10, 0, 30, 0.8), rgba(0, 212, 255, 0.45)), url('/dragon-bg.jpg')" 
+          // The Tense State: Dark blue (Original)
+          : "linear-gradient(rgba(15, 32, 39, 0.85), rgba(44, 83, 100, 0.85)), url('/dragon-bg.jpg')" 
+      }}
+      style={{
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        position: "relative"
+      }}
+      transition={{ duration: 2.5, ease: "easeInOut" }}
+    >
+      {/* If the quota is met, unleash the Alpha Energy Particles! */}
+      {isQuotaMet && <AlphaParticles />}
+
+      <div className="header-bar" style={{ position: "relative", zIndex: 2 }}>
         <h1>Драконий Центр Связи</h1>
         <button onClick={handleLogout} className="logout-btn">
           Отключиться
@@ -282,53 +303,29 @@ function App() {
       <div className="user-info-bar">
         <h2>Дежурная смена: инженеры-дегу ({session.user.email})</h2>
         <div className="stats-container">
-          {/* Стрики (Дни на вахте) */}
-          <div className="stat-badge streak-badge">
-            <span className="stat-icon">🔥</span>
-            <span className="stat-value">{stats.streak} дн. на вахте</span>
-          </div>
-
-          {/* Жетоны */}
-          <div className="stat-badge token-badge">
-            <span className="stat-icon">🪙</span>
-            <span className="stat-value">{stats.tokens} жетонов</span>
-          </div>
+            <div className="stat-badge streak-badge">
+              <span className="stat-icon">🔥</span>
+              <span className="stat-value">
+                <AnimatedNumber value={stats.streak} /> дн. на вахте
+              </span>
+            </div>
+            <div className="stat-badge token-badge">
+              <span className="stat-icon">🪙</span>
+              <span className="stat-value">
+                <AnimatedNumber value={stats.tokens} /> жетонов
+              </span>
+            </div>
         </div>
       </div>
 
-      {/* СЧЕТЧИК ГЕЙГЕРА (ПРОГРЕСС МИССИИ) */}
-{/*}      <div className="geiger-container">
-        <div className="geiger-label">План на смену (РАД/Ч)</div>
-        <div className="geiger-screen">
-          <div
-            className="geiger-bar"
-            style={{
-              width:
-                progress.total > 0
-                  ? `${(progress.solved / progress.total) * 100}%`
-                  : "0%",
-            }}
-          ></div>
-          <div className="geiger-text">
-            {progress.solved} / {progress.total} СИГНАЛОВ
-          </div>
-        </div>
-      </div>
-*/}
-
-
-{/* Прогресс-бар (План на смену) */}
       {progress && (
         <div className="geiger-container">
           <div className="geiger-label">РАДИАЦИОННЫЙ ФОН ЭФИРА</div>
           <div className="geiger-screen">
-            {/* Оставляем geiger-bar для высоты, и накидываем quota-met-bar для золотого цвета */}
             <div
               className={`geiger-bar ${progress.solved >= progress.total ? 'quota-met-bar' : ''}`}
               style={{ width: `${progress.percentage}%` }}
             ></div>
-            
-            {/* Оставляем geiger-text для центрирования, и накидываем quota-met-text для свечения */}
             <div className={`geiger-text ${progress.solved >= progress.total ? 'quota-met-text' : ''}`}>
               {progress.solved >= progress.total 
                 ? `План перевыполнен! (${progress.solved}/${progress.total}) Эфир чист 🐉` 
@@ -338,68 +335,43 @@ function App() {
           </div>
         </div>
       )}
+
       <div className="terminal">
-        {/* --- ВОЗВРАЩАЕМ АВАТАР НА МЕСТО --- */}
         <div className="degu-avatar-container">
-          <img
-            src={currentDegu.img}
-            alt={currentDegu.name}
-            className="degu-avatar"
-          />
+          <img src={currentDegu.img} alt={currentDegu.name} className="degu-avatar" />
           <div className="speech-bubble">
             <strong>{currentDegu.name}:</strong>
             <br />
             {deguPhrase}
           </div>
         </div>
-        {/* ОБОРАЧИВАЕМ ВСЕ СОСТОЯНИЯ В ANIMATE PRESENCE */}
+
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="loading-state"
-            >
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="loading-state">
               <p>Сканирование эфира...</p>
             </motion.div>
           ) : task ? (
-            <motion.div
-              key={
-                task.id
-              } /* Уникальный ключ заставляет React анимировать смену задач */
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 1.3 }}
-              style={{ width: "100%" }}
-            >
-              <p className="signal-header">
-                {">>>"} ПЕРЕХВАЧЕН СИГНАЛ: {task.title}
-              </p>
-
-              {/* ИСПОЛЬЗУЕМ ЭФФЕКТ ПЕЧАТНОЙ МАШИНКИ */}
+            <motion.div key={task.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 1.3 }} style={{ width: "100%" }}>
+              <p className="signal-header">{">>>"} ПЕРЕХВАЧЕН СИГНАЛ: {task.title}</p>
               <p className="task-content">
                 <Typewriter text={task.content} />
               </p>
 
-              {feedback && (
-                <p className={`feedback-msg ${feedback.type}`}>
-                  {feedback.text}
-                </p>
-              )}
+              {feedback && <p className={`feedback-msg ${feedback.type}`}>{feedback.text}</p>}
 
               {feedback?.type === "success" ? (
-                <button
+                <motion.button
                   onClick={handleNextTask}
                   className="submit-btn next-task-btn"
+                  whileHover={{ scale: 1.02, boxShadow: "0px 0px 20px rgba(76, 175, 80, 0.8)" }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   📡 Искать следующий сигнал
-                </button>
+                </motion.button>
               ) : (
-                /* ДОБАВЛЯЕМ КЛАСС ТРЯСКИ ЕСЛИ isShaking = true */
-                <div className={`input-area ${isShaking ? "shake" : ""}`}>
+                <div className={`input-area ${isGlitching ? "radiation-glitch" : ""}`}> 
                   <span>КОД: </span>
                   <form onSubmit={handleSubmit(onSubmit)} className="task-form">
                     <ValidatedInput
@@ -408,31 +380,40 @@ function App() {
                       register={register}
                       error={errors.answer}
                     />
-                    <button type="submit" className="submit-btn">
+                    {/* --- BUG 3 FIXED: Added motion.button and physics --- */}
+                    <motion.button 
+                      type="submit" 
+                      className="submit-btn"
+                      whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(246, 185, 59, 0.8)" }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
                       Отправить код
-                    </button>
+                    </motion.button>
                   </form>
                 </div>
               )}
             </motion.div>
           ) : (
             <motion.div
-              key="cleared"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+             key="cleared"
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: "spring", bounce: 0.5, duration: 1 }}
               className="all-cleared"
             >
-              <h3>🎉 Эфир чист!</h3>
-              <p>
-                Ты расшифровал все доступные сигналы. Инженеры-дегу могут
-                отдохнуть и погрызть орешки.
+              <div className="all-cleared-icon">🐉🔋</div>
+              <h3>Реактор стабилизирован!</h3>
+              <p style={{ fontSize: "1.2rem", lineHeight: "1.6" }}>
+                Отличная работа! Ты расшифровал все сигналы на сегодня. 
+                <br />
+                Уровень радиации в норме. Инженеры-дегу отправляются грызть орешки!
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
