@@ -644,3 +644,95 @@ h2 {
   0% { background-position: 100% 0; }
   100% { background-position: -100% 0; }
 }
+
+/* --- MOBILE OPTIMIZATION (iPhone 11 to 15 Pro Max) --- */
+@media (max-width: 768px) {
+  /* 1. Fix the Header & User Info */
+  .header-bar {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .header-bar h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0;
+  }
+
+  .user-info-bar {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .stats-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* 2. Fix the Geiger Counter */
+  .geiger-text {
+    font-size: 0.85rem;
+    white-space: normal; /* Allow text to wrap if needed */
+    text-align: center;
+    width: 100%;
+  }
+  
+  .geiger-screen {
+    height: 40px; /* Give it more height on mobile for wrapping text */
+  }
+
+  /* 3. Fix the Degu Avatar and Speech Bubble */
+  .degu-avatar-container {
+    flex-direction: column; /* Stack bubble under avatar */
+    margin-bottom: 20px;
+  }
+
+  .degu-avatar {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 15px;
+  }
+
+  /* Reset absolute positioning for mobile */
+  .speech-bubble {
+    position: relative;
+    left: 0;
+    max-width: 100%;
+    width: 90%;
+  }
+
+  /* Move the triangle pointer to the TOP of the bubble instead of the left */
+  .speech-bubble::before {
+    left: 50%;
+    top: -12px;
+    transform: translateX(-50%);
+    border-width: 0 12px 12px 12px;
+    border-color: transparent transparent #00d4ff transparent;
+  }
+
+  .speech-bubble::after {
+    left: 50%;
+    top: -8px;
+    transform: translateX(-50%);
+    border-width: 0 10px 10px 10px;
+    border-color: transparent transparent #0a001e transparent;
+  }
+
+  /* 4. Terminal adjustments */
+  .terminal {
+    padding: 15px;
+  }
+  
+  .task-form {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
