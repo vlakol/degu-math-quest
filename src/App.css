@@ -4,24 +4,23 @@
 }
 
 body {
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-  font-family: 'Courier New', Courier, monospace;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  /* Ставим картинку на самый нижний слой всей страницы */
+  background-image: url('/dragon-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-color: #0f2027; /* Резервный цвет */
 }
 
 .control-room {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Центрируем всё содержимое по горизонтали */
+  align-items: center;
   min-height: 100vh;
-  background-color: #1a1a1a;
   padding: 20px;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Ограничиваем ширину всех основных блоков */

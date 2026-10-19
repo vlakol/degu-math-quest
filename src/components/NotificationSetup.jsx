@@ -20,8 +20,11 @@ export function NotificationSetup({ session }) {
 
   // Check if they already allowed notifications
   useEffect(() => {
+    // Safari sometimes throws if Notification isn't checked properly in a PWA
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setIsSubscribed(Notification.permission === 'granted');
+    } else {
+      setIsSubscribed(true); // Hide the button if the browser doesn't support Push at all
     }
   }, []);
 

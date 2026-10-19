@@ -276,17 +276,10 @@ function App() {
     <motion.div 
       className="control-room"
       animate={{
+        // We removed the url() here. Now Framer Motion only computes the color gradient!
         background: isQuotaMet 
-          // The Victory State: Deep violet and bright cyan (Alpha Toothless)
-          ? "linear-gradient(rgba(10, 0, 30, 0.8), rgba(0, 212, 255, 0.45)), url('/dragon-bg.jpg')" 
-          // The Tense State: Dark blue (Original)
-          : "linear-gradient(rgba(15, 32, 39, 0.85), rgba(44, 83, 100, 0.85)), url('/dragon-bg.jpg')" 
-      }}
-      style={{
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        position: "relative"
+          ? "linear-gradient(135deg, rgba(10, 0, 30, 0.8), rgba(0, 212, 255, 0.45))" 
+          : "linear-gradient(135deg, rgba(15, 32, 39, 0.85), rgba(44, 83, 100, 0.85))" 
       }}
       transition={{ duration: 2.5, ease: "easeInOut" }}
     >
