@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { mathTaskSchema } from "./schemas";
 import { ValidatedInput } from "./components/ValidatedInput";
 import { Auth } from "./components/Auth";
+import { NotificationSetup } from "./components/NotificationSetup";
 import confetti from "canvas-confetti";
 import useSWR from "swr";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
