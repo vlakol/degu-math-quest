@@ -318,6 +318,8 @@ function App() {
         </div>
       </div>
 
+      <NotificationSetup session={session} />
+
       {progress && (
         <div className="geiger-container">
           <div className="geiger-label">РАДИАЦИОННЫЙ ФОН ЭФИРА</div>

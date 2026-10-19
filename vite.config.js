@@ -7,7 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate', 
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'], 
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      workbox: {
+        importScripts: ['/custom-sw.js'] 
+      }, 
       manifest: {
         name: 'Degu Math Quest',
         short_name: 'DeguMath',
