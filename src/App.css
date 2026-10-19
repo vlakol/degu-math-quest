@@ -1,3 +1,8 @@
+/* --- global reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
   background-color: #1a1a1a;
   color: #e0e0e0;
@@ -647,7 +652,12 @@ h2 {
 
 /* --- MOBILE OPTIMIZATION (iPhone 11 to 15 Pro Max) --- */
 @media (max-width: 768px) {
-  /* 1. Fix the Header & User Info */
+  /* Уменьшаем пустое пространство по краям экрана на мобилках */
+  .control-room {
+    padding: 10px; 
+    overflow-x: hidden; /* Жестко блокируем горизонтальный скролл */
+  }
+
   .header-bar {
     flex-direction: column;
     gap: 15px;
@@ -665,45 +675,54 @@ h2 {
     text-align: center;
   }
 
+  /* Разрешаем длинным email (test@degu.local) ломаться на новую строку, если не влезают */
+  .user-info-bar h2 {
+    word-break: break-word;
+    font-size: 0.95rem;
+  }
+
   .stats-container {
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    gap: 10px; /* Чуть уменьшаем расстояние между плашками */
   }
 
-  /* 2. Fix the Geiger Counter */
+  .stat-badge {
+    padding: 6px 12px;
+    font-size: 0.9rem; /* Чуть уменьшаем шрифт плашек */
+  }
+
   .geiger-text {
     font-size: 0.85rem;
-    white-space: normal; /* Allow text to wrap if needed */
+    white-space: normal;
     text-align: center;
     width: 100%;
   }
   
   .geiger-screen {
-    height: 40px; /* Give it more height on mobile for wrapping text */
+    height: 40px;
   }
 
-  /* 3. Fix the Degu Avatar and Speech Bubble */
   .degu-avatar-container {
-    flex-direction: column; /* Stack bubble under avatar */
+    flex-direction: column;
     margin-bottom: 20px;
   }
 
   .degu-avatar {
-    width: 120px;
-    height: 120px;
+    width: 110px; /* Чуть меньше аватар на телефоне */
+    height: 110px;
     margin-bottom: 15px;
   }
 
-  /* Reset absolute positioning for mobile */
   .speech-bubble {
     position: relative;
     left: 0;
     max-width: 100%;
-    width: 90%;
+    width: 100%; /* На телефоне пусть занимает всю ширину под аватаром */
+    text-align: center;
   }
 
-  /* Move the triangle pointer to the TOP of the bubble instead of the left */
   .speech-bubble::before {
     left: 50%;
     top: -12px;
@@ -720,9 +739,8 @@ h2 {
     border-color: transparent transparent #0a001e transparent;
   }
 
-  /* 4. Terminal adjustments */
   .terminal {
-    padding: 15px;
+    padding: 15px; /* Уменьшаем внутренние отступы терминала на мобилке */
   }
   
   .task-form {
@@ -733,6 +751,6 @@ h2 {
   
   .submit-btn {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 15px;
   }
 }
